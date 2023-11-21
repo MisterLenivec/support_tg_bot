@@ -21,4 +21,4 @@ def create_inline_kb(*args: str, **kwargs: str) -> InlineKeyboardMarkup:
 
     kb_builder.row(*buttons, width=2)
 
-    return kb_builder.as_markup(resize_keyboard=True, one_time_keyboard=True)
+    return kb_builder.as_markup(resize_keyboard=True)
