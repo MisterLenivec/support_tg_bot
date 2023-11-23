@@ -30,7 +30,8 @@ INLINE_BUTTON_COMMANDS: dict[str, str] = {
     'contacts': 'Контакты',
     'opportunities': 'Возможности',
     'functionality': 'Функции',
-    'interface': 'Интерфейс'
+    'interface': 'Интерфейс',
+    'cancel': 'Выйти из заполнения формы',
 }
 
 LEXICON_ADVANTAGES: dict[str: str, str: list[str]] = {

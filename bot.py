@@ -4,7 +4,7 @@ import logging
 from aiogram.fsm.storage.redis import RedisStorage, Redis
 from aiogram import Bot, Dispatcher
 from config_data.config import Config, load_config
-from handlers import user_handlers
+from handlers import user_handlers, fsm_handlers
 
 from keyboards.main_menu import set_main_menu
 
@@ -37,6 +37,7 @@ async def main():
     await set_main_menu(bot)
 
     dp.include_router(user_handlers.router)
+    dp.include_router(fsm_handlers.router)
 
     # Пропускаем накопившиеся апдейты и запускаем polling
     await bot.delete_webhook(drop_pending_updates=True)

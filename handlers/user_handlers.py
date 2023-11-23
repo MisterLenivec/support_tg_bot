@@ -2,11 +2,10 @@ from asyncio import sleep
 
 from aiogram import F, Router
 from aiogram.filters import Command
-from aiogram.types import CallbackQuery, Message
-from aiogram.types import FSInputFile
+from aiogram.types import CallbackQuery, Message, FSInputFile
 
 from lexicon.lexicon_data import (LEXICON_ANSWERS, LEXICON_ADVANTAGES, LEXICON_CONTACTS, LEXICON_OPPORTUNITIES,
-                                  LEXICON_FUNCTIONALITY, LEXICON_INTERFACE, LEXICON_ADVANTAGES)
+                                  LEXICON_FUNCTIONALITY, LEXICON_INTERFACE)
 # from keyboards.reply_keyboards import info_keyboard
 from keyboards.inline_keyboards import create_inline_kb
 
