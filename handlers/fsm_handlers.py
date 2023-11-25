@@ -6,6 +6,7 @@ from aiogram.types import CallbackQuery, Message
 
 from keyboards.inline_keyboards import create_inline_kb
 from filters.filters import IsCorrectEmail, IsCorrectPhoneNumber
+from services.service import get_structured_data, send_mail
 
 
 router = Router()
@@ -110,15 +111,14 @@ async def process_text_sent(message: Message, state: FSMContext):
     await state.update_data(text=message.text)
     # Устанавливаем состояние ожидания выбора пола
     await state.set_state(FSMFillForm.fill_text)
-    data = await state.get_data()
-    user_data = f"Имя: {data['name']}\n" \
-               f"Почта: {data['email']}\n" \
-               f"Телефон: {data['phone']}\n" \
-               f"Текст: {data['text']}"
+    user_data: dict[str: str] = await state.get_data()
+
+    tg_data, answer_data = await get_structured_data(user_data, message)
+    await send_mail(tg_data + '\n\n' + answer_data)
 
     await state.clear()
     # тут отправка данных
-    await message.answer(text=user_data)
+    await message.answer(text=answer_data)
     # Отправляем пользователю сообщение
     await message.answer(text="Спасибо за обращение!\nНаш менеджер свяжется с Вами\nДо свидания!")
 
