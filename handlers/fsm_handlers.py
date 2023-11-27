@@ -1,15 +1,15 @@
 from aiogram import F, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import default_state, State, StatesGroup
+from aiogram.fsm.state import State, StatesGroup, default_state
 from aiogram.types import CallbackQuery, Message
-
-from keyboards.inline_keyboards import create_inline_kb
 from filters.filters import IsCorrectEmail, IsCorrectPhoneNumber
+from keyboards.inline_keyboards import create_inline_kb
 from services.service import get_structured_data, send_mail
 
 
 router = Router()
+
 
 class FSMFillForm(StatesGroup):
     fill_name = State()
@@ -20,9 +20,9 @@ class FSMFillForm(StatesGroup):
 
 # Этот хэндлер будет срабатывать на команду "/cancel" в любых состояниях,
 # кроме состояния по умолчанию, и отключать машину состояний
-@router.callback_query(F.data =='cancel', ~StateFilter(default_state))
+@router.callback_query(F.data == "cancel", ~StateFilter(default_state))
 async def process_cancel_command_state(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer(text='Вы вышли из заполнения обращения.')
+    await callback.message.answer(text="Вы вышли из заполнения обращения.")
     # Сбрасываем состояние и очищаем данные, полученные внутри состояний
     await state.clear()
     await callback.answer()
@@ -30,10 +30,10 @@ async def process_cancel_command_state(callback: CallbackQuery, state: FSMContex
 
 # Этот хэндлер будет срабатывать на команду /send_feedback
 # и переводить бота в состояние ожидания ввода имени
-@router.message(Command(commands='send_feedback'), StateFilter(default_state))
+@router.message(Command(commands="send_feedback"), StateFilter(default_state))
 async def process_fillform_command(message: Message, state: FSMContext):
-    keyboard = create_inline_kb('cancel')
-    await message.answer(text='Пожалуйста, введите ваше имя.', reply_markup=keyboard)
+    keyboard = create_inline_kb("cancel")
+    await message.answer(text="Пожалуйста, введите ваше имя.", reply_markup=keyboard)
     # Устанавливаем состояние ожидания ввода имени
     await state.set_state(FSMFillForm.fill_name)
 
@@ -44,8 +44,8 @@ async def process_fillform_command(message: Message, state: FSMContext):
 async def process_name_sent(message: Message, state: FSMContext):
     # Cохраняем введенное имя в хранилище по ключу "name"
     await state.update_data(name=message.text)
-    keyboard = create_inline_kb('cancel')
-    await message.answer(text='Спасибо!\n\nВведите адрес вашей электронной почты.', reply_markup=keyboard)
+    keyboard = create_inline_kb("cancel")
+    await message.answer(text="Спасибо!\n\nВведите адрес вашей электронной почты.", reply_markup=keyboard)
     # Устанавливаем состояние ожидания ввода возраста
     await state.set_state(FSMFillForm.fill_email)
 
@@ -54,11 +54,10 @@ async def process_name_sent(message: Message, state: FSMContext):
 # будет введено что-то некорректное
 @router.message(StateFilter(FSMFillForm.fill_name))
 async def warning_not_name(message: Message):
-    keyboard = create_inline_kb('cancel')
+    keyboard = create_inline_kb("cancel")
     await message.answer(
-        text='То, что вы отправили не похоже на имя\n\nПожалуйста, введите ваше имя.',
-        reply_markup=keyboard
-        )
+        text="То, что вы отправили не похоже на имя\n\nПожалуйста, введите ваше имя.", reply_markup=keyboard
+    )
 
 
 # Этот хэндлер будет срабатывать, если введен корректный email
@@ -67,9 +66,9 @@ async def warning_not_name(message: Message):
 async def process_email_sent(message: Message, state: FSMContext):
     # Cохраняем возраст в хранилище по ключу "email"
     await state.update_data(email=message.text)
-    keyboard = create_inline_kb('cancel')
+    keyboard = create_inline_kb("cancel")
     # Отправляем пользователю сообщение с клавиатурой
-    await message.answer(text='Спасибо!\n\nВведите ваш номер телефона.', reply_markup=keyboard)
+    await message.answer(text="Спасибо!\n\nВведите ваш номер телефона.", reply_markup=keyboard)
     # Устанавливаем состояние ожидания выбора пола
     await state.set_state(FSMFillForm.fill_phone)
 
@@ -78,8 +77,8 @@ async def process_email_sent(message: Message, state: FSMContext):
 # будет введено что-то некорректное
 @router.message(StateFilter(FSMFillForm.fill_email))
 async def warning_not_email(message: Message):
-    keyboard = create_inline_kb('cancel')
-    await message.answer(text='Некорректный адрес электронной почты, повторите попытку ввода.', reply_markup=keyboard)
+    keyboard = create_inline_kb("cancel")
+    await message.answer(text="Некорректный адрес электронной почты, повторите попытку ввода.", reply_markup=keyboard)
 
 
 # Этот хэндлер будет срабатывать, если введен корректный телефон
@@ -88,9 +87,9 @@ async def warning_not_email(message: Message):
 async def process_phone_sent(message: Message, state: FSMContext):
     # Cохраняем возраст в хранилище по ключу "phone"
     await state.update_data(phone=message.text)
-    keyboard = create_inline_kb('cancel')
+    keyboard = create_inline_kb("cancel")
     # Отправляем пользователю сообщение с клавиатурой
-    await message.answer(text='Спасибо!\n\nВведите текст вашего обращения.', reply_markup=keyboard)
+    await message.answer(text="Спасибо!\n\nВведите текст вашего обращения.", reply_markup=keyboard)
     # Устанавливаем состояние ожидания выбора пола
     await state.set_state(FSMFillForm.fill_text)
 
@@ -99,8 +98,8 @@ async def process_phone_sent(message: Message, state: FSMContext):
 # будет введено что-то некорректное
 @router.message(StateFilter(FSMFillForm.fill_phone))
 async def warning_not_phone(message: Message):
-    keyboard = create_inline_kb('cancel')
-    await message.answer(text='Некорректный номер телефона повторите попытку ввода.', reply_markup=keyboard)
+    keyboard = create_inline_kb("cancel")
+    await message.answer(text="Некорректный номер телефона повторите попытку ввода.", reply_markup=keyboard)
 
 
 # Этот хэндлер будет срабатывать, если введен корректный текст
@@ -111,10 +110,10 @@ async def process_text_sent(message: Message, state: FSMContext):
     await state.update_data(text=message.text)
     # Устанавливаем состояние ожидания выбора пола
     await state.set_state(FSMFillForm.fill_text)
-    user_data: dict[str: str] = await state.get_data()
+    user_data: dict[str:str] = await state.get_data()
 
     tg_data, answer_data = await get_structured_data(user_data, message)
-    await send_mail(tg_data + '\n\n' + answer_data)
+    await send_mail(tg_data + "\n\n" + answer_data)
 
     await state.clear()
     # тут отправка данных
@@ -127,5 +126,5 @@ async def process_text_sent(message: Message, state: FSMContext):
 # будет введено что-то некорректное
 @router.message(StateFilter(FSMFillForm.fill_text))
 async def process_not_text_sent(message: Message):
-    keyboard = create_inline_kb('cancel')
-    await message.answer(text='Введите текст вашего обращения.', reply_markup=keyboard)
+    keyboard = create_inline_kb("cancel")
+    await message.answer(text="Введите текст вашего обращения.", reply_markup=keyboard)
