@@ -1,10 +1,26 @@
 from dataclasses import dataclass
 
+from aiogram.fsm.state import State, StatesGroup
 from environs import Env
+
+
+class FSMFillForm(StatesGroup):
+    fill_name = State()
+    fill_email = State()
+    fill_phone = State()
+    fill_text = State()
+
+
+class FeedbackDialog(StatesGroup):
+    support = State()
 
 
 @dataclass
 class TgBot:
+    token: str
+
+@dataclass
+class Omnidesk:
     token: str
 
 
@@ -20,6 +36,7 @@ class MailSettings:
 class Config:
     tg_bot: TgBot
     mail: MailSettings
+    omnidesk: Omnidesk
 
 
 # Создаем функцию, которая будет читать файл .env и возвращать
@@ -36,5 +53,8 @@ def load_config(path: str | None = None) -> Config:
             email_recipients=[env('EMAIL_RECIPIENT')],
             protocol=env('PROTOCOL'),
             app_pass=env('APP_PASS')
+        ),
+        omnidesk=Omnidesk(
+            token=env('OMNIDESK_TOKEN')
         )
     )

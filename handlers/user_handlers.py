@@ -1,8 +1,11 @@
 from asyncio import sleep
 
 from aiogram import F, Router
-from aiogram.filters import Command
+from aiogram.filters import Command, StateFilter
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import default_state
 from aiogram.types import CallbackQuery, FSInputFile, Message
+from config_data.config import FeedbackDialog, FSMFillForm
 
 # from keyboards.reply_keyboards import info_keyboard
 from keyboards.inline_keyboards import create_inline_kb
@@ -16,6 +19,36 @@ from lexicon.lexicon_data import (
 )
 
 router = Router()
+
+
+# Этот хэндлер будет срабатывать на команду "/cancel" в любых состояниях,
+# кроме состояния по умолчанию, и отключать машину состояний
+@router.callback_query(F.data == "cancel", ~StateFilter(default_state))
+async def process_cancel_command_state(callback: CallbackQuery, state: FSMContext):
+    await callback.message.answer(text="Вы вышли из заполнения обращения.")
+    # Сбрасываем состояние и очищаем данные, полученные внутри состояний
+    await state.clear()
+    await callback.answer()
+
+
+# Этот хэндлер будет срабатывать на команду /operator
+# и переводить бота в состояние диалога с оператором
+@router.message(Command(commands="operator"), StateFilter(default_state))
+async def process_operator_command(message: Message, state: FSMContext):
+    keyboard = create_inline_kb("cancel")
+    await message.answer(LEXICON_ANSWERS["/operator"], reply_markup=keyboard)
+    # Устанавливаем состояние ожидания ввода имени
+    await state.set_state(FeedbackDialog.support)
+
+
+# Этот хэндлер будет срабатывать на команду /send_feedback
+# и переводить бота в состояние ожидания ввода имени
+@router.message(Command(commands="send_feedback"), StateFilter(default_state))
+async def process_send_feedback_command(message: Message, state: FSMContext):
+    keyboard = create_inline_kb("cancel")
+    await message.answer(text="Пожалуйста, введите ваше имя.", reply_markup=keyboard)
+    # Устанавливаем состояние ожидания ввода имени
+    await state.set_state(FSMFillForm.fill_name)
 
 
 @router.message(Command(commands=["start", "menu"]))
@@ -41,11 +74,6 @@ async def process_contacts_command(message: Message):
 async def process_links_commands(message: Message):
     keyboard = create_inline_kb("info", "advantages", "contacts")
     await message.answer(LEXICON_ANSWERS[message.text.split()[0]], reply_markup=keyboard)
-
-
-@router.message(Command(commands="operator"))
-async def process_operator_command(message: Message):
-    await message.answer(LEXICON_ANSWERS["/operator"])
 
 
 # Хэндлеры срабатывающие на CallbackQuery (Инлайн кнопки)

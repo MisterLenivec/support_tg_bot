@@ -1,8 +1,8 @@
 from aiogram import F, Router
-from aiogram.filters import Command, StateFilter
+from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup, default_state
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import Message
+from config_data.config import FeedbackDialog, FSMFillForm
 from filters.filters import IsCorrectEmail, IsCorrectPhoneNumber
 from keyboards.inline_keyboards import create_inline_kb
 from services.service import get_structured_data, send_mail
@@ -11,31 +11,12 @@ from services.service import get_structured_data, send_mail
 router = Router()
 
 
-class FSMFillForm(StatesGroup):
-    fill_name = State()
-    fill_email = State()
-    fill_phone = State()
-    fill_text = State()
-
-
-# Этот хэндлер будет срабатывать на команду "/cancel" в любых состояниях,
-# кроме состояния по умолчанию, и отключать машину состояний
-@router.callback_query(F.data == "cancel", ~StateFilter(default_state))
-async def process_cancel_command_state(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer(text="Вы вышли из заполнения обращения.")
-    # Сбрасываем состояние и очищаем данные, полученные внутри состояний
+# Этот хэндлер будет срабатывать, при переводе на оператора
+@router.message(StateFilter(FeedbackDialog.support))
+async def process_support_sent(message: Message, state: FSMContext):
+    # Тут прописать логику, пока тут ничего не происходит, при вводе чего либо будет ответ и сброс состояния.
+    await message.answer(text="Очень важное сообщение, спасибо, досвидания.")
     await state.clear()
-    await callback.answer()
-
-
-# Этот хэндлер будет срабатывать на команду /send_feedback
-# и переводить бота в состояние ожидания ввода имени
-@router.message(Command(commands="send_feedback"), StateFilter(default_state))
-async def process_fillform_command(message: Message, state: FSMContext):
-    keyboard = create_inline_kb("cancel")
-    await message.answer(text="Пожалуйста, введите ваше имя.", reply_markup=keyboard)
-    # Устанавливаем состояние ожидания ввода имени
-    await state.set_state(FSMFillForm.fill_name)
 
 
 # Этот хэндлер будет срабатывать, если введено корректное имя
