@@ -1,3 +1,4 @@
+BASE_COMMANDS = ["start", "menu", "operator", "send_feedback", "info", "contacts", "home_assistant", "docs_install"]
 LEXICON_ANSWERS: dict[str, str] = {
     "/start": "Добрый день! Чем мы можем вам помочь?(выберите один из пунктов меню)",
     "/menu": "Добрый день! Чем мы можем вам помочь?(выберите один из пунктов меню)",
@@ -27,7 +28,12 @@ INLINE_BUTTON_COMMANDS: dict[str, str] = {
     "opportunities": "Возможности",
     "functionality": "Функции",
     "interface": "Интерфейс",
-    "cancel": "Выйти из заполнения формы",
+    # "cancel": "Выйти из заполнения формы",
+}
+
+REPLY_BUTTON_COMMANDS: dict[str, str] = {
+    "cancel_feedback": "Отменить заполнение формы",
+    "cancel_operator": "Завершить диалог с оператором",
 }
 
 LEXICON_ADVANTAGES: dict[str:str, str : list[str]] = {

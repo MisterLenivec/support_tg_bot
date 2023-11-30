@@ -1,12 +1,19 @@
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
-from lexicon.lexicon_data import INFO_BUTTONS
+from lexicon.lexicon_data import REPLY_BUTTON_COMMANDS
 
 
-kb_builder = ReplyKeyboardBuilder()
+def create_reply_kb(*args: str) -> ReplyKeyboardMarkup:
+    kb_builder = ReplyKeyboardBuilder()
+    buttons: list[KeyboardButton] = []
 
-buttons: list[KeyboardButton] = [KeyboardButton(text=button) for button in INFO_BUTTONS]
+    for button in args:
+        buttons.append(
+            KeyboardButton(
+                text=REPLY_BUTTON_COMMANDS[button] if button in REPLY_BUTTON_COMMANDS else button,
+            )
+        )
 
-kb_builder.row(*buttons, width=2)
+    kb_builder.row(*buttons, width=1)
 
-info_keyboard: ReplyKeyboardMarkup = kb_builder.as_markup(resize_keyboard=True, one_time_keyboard=True)
+    return kb_builder.as_markup(resize_keyboard=True, one_time_keyboard=True)

@@ -4,10 +4,10 @@ from aiogram import F, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state
-from aiogram.types import CallbackQuery, FSInputFile, Message
+from aiogram.types import CallbackQuery, FSInputFile, Message, ReplyKeyboardRemove
 from config_data.config import FeedbackDialog, FSMFillForm
 
-# from keyboards.reply_keyboards import info_keyboard
+from keyboards.reply_keyboards import create_reply_kb
 from keyboards.inline_keyboards import create_inline_kb
 from lexicon.lexicon_data import (
     LEXICON_ADVANTAGES,
@@ -16,18 +16,56 @@ from lexicon.lexicon_data import (
     LEXICON_FUNCTIONALITY,
     LEXICON_INTERFACE,
     LEXICON_OPPORTUNITIES,
+    REPLY_BUTTON_COMMANDS,
+    BASE_COMMANDS
 )
 
 router = Router()
 
 
-# Этот хэндлер будет срабатывать на команду "/cancel" в любых состояниях,
-# кроме состояния по умолчанию, и отключать машину состояний
-@router.callback_query(F.data == "cancel", ~StateFilter(default_state))
-async def process_cancel_command_state(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer(text="Вы вышли из заполнения обращения.")
-    # Сбрасываем состояние и очищаем данные, полученные внутри состояний
+# Этот хэндлер будет срабатывать на команду "/cancel_feedback" в состоянии заполнения обращения,
+# и отключать машину состояний
+@router.message(F.text == REPLY_BUTTON_COMMANDS["cancel_feedback"], StateFilter(FSMFillForm))
+async def process_cancel_feedback_command(message: Message, state: FSMContext):
+    await message.answer(text="Вы отменили заполнение обращения.", reply_markup=ReplyKeyboardRemove())
     await state.clear()
+
+
+# Этот хэндлер будет срабатывать на команду "/cancel_operator" в состоянии диалога с оператором,
+# и отключать машину состояний
+@router.message(F.text == REPLY_BUTTON_COMMANDS["cancel_operator"], StateFilter(FeedbackDialog))
+async def process_cancel_operator_command(message: Message, state: FSMContext):
+    await message.answer(text="Вы завершили общение с оператором.", reply_markup=ReplyKeyboardRemove())
+    await state.clear()
+
+
+# Вообще два нижних хандлера бы объеденить в один с проврекой на не дефолт стейт,
+# но тогда нужно придумать универсальное сообщение подходящее для обоих случаев.
+# Тут будем игнорировать нажатия на меню кнопки во время заполнения формы.
+@router.message(Command(commands=BASE_COMMANDS), StateFilter(FSMFillForm))
+async def process_ignore_comands_in_fillform(message: Message):
+    await message.answer(
+        "Команды недоступны во время заполнения обращения.\n"
+        f"Если вы хотите отменить заполнение, нажмите кнопку \"{REPLY_BUTTON_COMMANDS['cancel_feedback']}\" "
+        "сразу под строкой ввода."
+        )
+
+
+# Тут будем игнорировать нажатия на меню кнопки во время диалога с оператором.
+@router.message(Command(commands=BASE_COMMANDS), StateFilter(FeedbackDialog))
+async def process_ignore_commands_in_dialog(message: Message):
+    await message.answer(
+        "Команды недоступны во время диалога с оператором.\n"
+        f"Если вы хотите выйти из диалога, нажмите кнопку \"{REPLY_BUTTON_COMMANDS['cancel_operator']}\" "
+        "сразу под строкой ввода."
+        )
+
+
+# Тут будем игнорировать нажатия на инлайн кнопки во время включенной машины состояний.
+@router.callback_query(F.data.in_({
+    "info", "opportunities", "functionality", "interface", "contacts", "advantages"
+    }), ~StateFilter(default_state))
+async def process_ignore_calback_action(callback: CallbackQuery):
     await callback.answer()
 
 
@@ -35,7 +73,7 @@ async def process_cancel_command_state(callback: CallbackQuery, state: FSMContex
 # и переводить бота в состояние диалога с оператором
 @router.message(Command(commands="operator"), StateFilter(default_state))
 async def process_operator_command(message: Message, state: FSMContext):
-    keyboard = create_inline_kb("cancel")
+    keyboard = create_reply_kb("cancel_operator")
     await message.answer(LEXICON_ANSWERS["/operator"], reply_markup=keyboard)
     # Устанавливаем состояние ожидания ввода имени
     await state.set_state(FeedbackDialog.support)
@@ -45,7 +83,7 @@ async def process_operator_command(message: Message, state: FSMContext):
 # и переводить бота в состояние ожидания ввода имени
 @router.message(Command(commands="send_feedback"), StateFilter(default_state))
 async def process_send_feedback_command(message: Message, state: FSMContext):
-    keyboard = create_inline_kb("cancel")
+    keyboard = create_reply_kb("cancel_feedback")
     await message.answer(text="Пожалуйста, введите ваше имя.", reply_markup=keyboard)
     # Устанавливаем состояние ожидания ввода имени
     await state.set_state(FSMFillForm.fill_name)
