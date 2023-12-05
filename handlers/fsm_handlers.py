@@ -100,7 +100,8 @@ async def process_text_sent(message: Message, state: FSMContext):
     # тут отправка данных
     await message.answer(text=answer_data)
     # Отправляем пользователю сообщение
-    await message.answer(text="Спасибо за обращение!\nНаш менеджер свяжется с Вами\nДо свидания!")
+    await message.answer(text="Спасибо за обращение!\nНаш менеджер свяжется с Вами\nДо свидания!",
+                         reply_markup=ReplyKeyboardRemove())
 
 
 # Этот хэндлер будет срабатывать, если во время ввода текста
