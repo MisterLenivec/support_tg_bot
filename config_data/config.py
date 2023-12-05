@@ -25,11 +25,23 @@ class Omnidesk:
 
 
 @dataclass
+class NgrokSettings:
+    tunnel_url: str
+
+
+@dataclass
 class MailSettings:
     mail_login: str
     email_recipients: str
     protocol: str
     app_pass: str
+
+@dataclass
+class WebhookSettings:
+    web_server_host: str
+    web_server_port: str
+    webhook_path: str
+    webhook_secret: str
 
 
 @dataclass
@@ -37,6 +49,8 @@ class Config:
     tg_bot: TgBot
     mail: MailSettings
     omnidesk: Omnidesk
+    ngrok: NgrokSettings
+    webhook: WebhookSettings
 
 
 # Создаем функцию, которая будет читать файл .env и возвращать
@@ -56,5 +70,14 @@ def load_config(path: str | None = None) -> Config:
         ),
         omnidesk=Omnidesk(
             token=env('OMNIDESK_TOKEN')
+        ),
+        ngrok=NgrokSettings(
+            tunnel_url=env('NGROK_TUNNEL_URL')
+        ),
+        webhook=WebhookSettings(
+            web_server_host=env('WEB_SERVER_HOST'),
+            web_server_port=env('WEB_SERVER_PORT'),
+            webhook_path=env('WEBHOOK_PATH'),
+            webhook_secret=env('WEBHOOK_SECRET'),
         )
     )
