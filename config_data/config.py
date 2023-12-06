@@ -19,14 +19,10 @@ class FeedbackDialog(StatesGroup):
 class TgBot:
     token: str
 
+
 @dataclass
 class Omnidesk:
     token: str
-
-
-@dataclass
-class NgrokSettings:
-    tunnel_url: str
 
 
 @dataclass
@@ -35,6 +31,7 @@ class MailSettings:
     email_recipients: str
     protocol: str
     app_pass: str
+
 
 @dataclass
 class WebhookSettings:
@@ -49,7 +46,6 @@ class Config:
     tg_bot: TgBot
     mail: MailSettings
     omnidesk: Omnidesk
-    ngrok: NgrokSettings
     webhook: WebhookSettings
 
 
@@ -70,9 +66,6 @@ def load_config(path: str | None = None) -> Config:
         ),
         omnidesk=Omnidesk(
             token=env('OMNIDESK_TOKEN')
-        ),
-        ngrok=NgrokSettings(
-            tunnel_url=env('NGROK_TUNNEL_URL')
         ),
         webhook=WebhookSettings(
             web_server_host=env('WEB_SERVER_HOST'),

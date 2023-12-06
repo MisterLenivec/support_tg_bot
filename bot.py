@@ -1,4 +1,5 @@
 import logging
+import ngrok
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import Redis, RedisStorage
@@ -26,14 +27,15 @@ WEBHOOK_PATH = config.webhook.webhook_path
 WEBHOOK_SECRET = config.webhook.webhook_secret
 # Base URL for webhook will be used to generate webhook URL for Telegram,
 # in this example it is used public DNS with HTTPS support
-BASE_WEBHOOK_URL = config.ngrok.tunnel_url
 
 
 async def on_startup(bot: Bot) -> None:
+    listener = await ngrok.connect(f'{WEB_SERVER_HOST}:{WEB_SERVER_PORT}', authtoken_from_env=True)
+
     # # Drop updates
     # await bot.delete_webhook(drop_pending_updates=True)
 
-    await bot.set_webhook(f"{BASE_WEBHOOK_URL}{WEBHOOK_PATH}", secret_token=WEBHOOK_SECRET)
+    await bot.set_webhook(f"{listener.url()}{WEBHOOK_PATH}", secret_token=WEBHOOK_SECRET)
     # Setting up bot main menu
     await set_main_menu(bot)
 
