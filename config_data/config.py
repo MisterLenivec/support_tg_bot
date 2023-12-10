@@ -42,11 +42,20 @@ class WebhookSettings:
 
 
 @dataclass
+class DBSettings:
+    name: str
+    user: str
+    password: str
+    host: str
+
+
+@dataclass
 class Config:
     tg_bot: TgBot
     mail: MailSettings
     omnidesk: Omnidesk
     webhook: WebhookSettings
+    database: DBSettings
 
 
 # Создаем функцию, которая будет читать файл .env и возвращать
@@ -72,5 +81,11 @@ def load_config(path: str | None = None) -> Config:
             web_server_port=env('WEB_SERVER_PORT'),
             webhook_path=env('WEBHOOK_PATH'),
             webhook_secret=env('WEBHOOK_SECRET'),
+        ),
+        database=DBSettings(
+            name=env('DB_NAME'),
+            user=env('DB_USER'),
+            password=env('DB_PASSWORD'),
+            host=env('DB_HOST'),
         )
     )
