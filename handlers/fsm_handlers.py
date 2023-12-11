@@ -89,8 +89,6 @@ async def warning_not_phone(message: Message):
 async def process_text_sent(message: Message, state: FSMContext):
     # Cохраняем возраст в хранилище по ключу "phone"
     await state.update_data(text=message.text)
-    # Устанавливаем состояние ожидания выбора пола
-    await state.set_state(FSMFillForm.fill_text)
     user_data: dict[str:str] = await state.get_data()
 
     tg_data, answer_data = await get_structured_data(user_data, message)

@@ -1,3 +1,4 @@
+from re import sub
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from smtplib import SMTP_SSL
@@ -6,9 +7,17 @@ import pytz
 from config_data.config import Config, load_config
 
 
+async def get_validated_phone(phone):
+    validated = sub(r'\D', '', phone)
+    if len(validated) > 10 and validated[0] == '7':
+        return '8' + validated[1:]
+    return validated
+
+
 async def get_structured_data(user_data, message) -> tuple[str, str]:
     tz_moscow = pytz.timezone("Europe/Moscow")
     localized_time: str = message.date.astimezone(tz_moscow).strftime("%d-%m-%Y %H:%M:%S")
+    validated_phone = await get_validated_phone(user_data['phone'])
 
     tg_data = (
         f"Время обращения: {localized_time}\n"
@@ -20,7 +29,7 @@ async def get_structured_data(user_data, message) -> tuple[str, str]:
     answer_data = (
         f"Имя: {user_data['name']}\n"
         f"Почта: {user_data['email']}\n"
-        f"Телефон: {user_data['phone']}\n"
+        f"Телефон: {validated_phone}\n"
         f"Текст: {user_data['text']}"
     )
 
