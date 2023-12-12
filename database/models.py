@@ -37,7 +37,7 @@ class Feedback(Base):
     tg_nickname: Mapped[str] = mapped_column(String(50))
     name: Mapped[str] = mapped_column(String(50))
     mail: Mapped[str] = mapped_column(String(50))
-    phone: Mapped[str] = mapped_column(String(13))
+    phone: Mapped[str] = mapped_column(String(11))
     created_on: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     appeal: Mapped[str] = mapped_column()
 

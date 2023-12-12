@@ -1,4 +1,5 @@
 from re import sub
+from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from smtplib import SMTP_SSL
@@ -9,14 +10,14 @@ from config_data.config import Config, load_config
 
 async def get_validated_phone(phone):
     validated = sub(r'\D', '', phone)
-    if len(validated) > 10 and validated[0] == '7':
+    if len(validated) > 10:
         return '8' + validated[1:]
-    return validated
+    return '8' + validated
 
 
 async def get_structured_data(user_data, message) -> tuple[str, str]:
     tz_moscow = pytz.timezone("Europe/Moscow")
-    localized_time: str = message.date.astimezone(tz_moscow).strftime("%d-%m-%Y %H:%M:%S")
+    localized_time: str = datetime.now().astimezone(tz_moscow).strftime("%d-%m-%Y %H:%M:%S")
     validated_phone = await get_validated_phone(user_data['phone'])
 
     tg_data = (
