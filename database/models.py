@@ -24,8 +24,9 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     tg_id = mapped_column(BigInteger, unique=True)
+    created_on: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
-    feedbacks = relationship('Feedback', back_populates='user')
+    feedbacks: Mapped[list["Feedback"]] = relationship('Feedback', back_populates='user', cascade='all, delete-orphan')
 
 
 class Feedback(Base):
@@ -41,7 +42,7 @@ class Feedback(Base):
     created_on: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     appeal: Mapped[str] = mapped_column()
 
-    user = relationship('User', back_populates='feedbacks')
+    user: Mapped["User"] = relationship('User', back_populates='feedbacks')
 
 
 async def config_database():
