@@ -5,7 +5,7 @@ from aiogram.types import Message, ReplyKeyboardRemove
 from config_data.config import FeedbackDialog, FSMFillForm
 from filters.filters import IsCorrectEmail, IsCorrectPhoneNumber
 from keyboards.reply_keyboards import create_reply_kb
-from services.service import get_structured_data, send_mail, add_data_to_db
+from services.service import get_structured_data, send_mail, add_user_data_to_db
 
 
 router = Router()
@@ -93,7 +93,7 @@ async def process_text_sent(message: Message, state: FSMContext):
 
     tg_data, answer_data, localized_time, validated_phone = await get_structured_data(user_data, message)
 
-    await add_data_to_db(message, user_data, localized_time, validated_phone)
+    await add_user_data_to_db(message, user_data, localized_time, validated_phone)
     await send_mail(tg_data + "\n\n" + answer_data)
 
     await state.clear()

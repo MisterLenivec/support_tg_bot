@@ -6,6 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
+# local files
+lexicon_answers.py
+
 # Distribution / packaging
 .Python
 build/

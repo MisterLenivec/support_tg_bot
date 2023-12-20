@@ -6,7 +6,23 @@ from smtplib import SMTP_SSL
 
 import pytz
 from config_data.config import Config, load_config
-from database.models import Feedback, User, async_session
+from database.models import (
+    async_session,
+    Feedback,
+    User,
+    Advantages,
+    Contacts,
+    Opportunities,
+    Functionalities,
+    Interface
+)
+from lexicon.lexicon_answers import (
+    LEXICON_ADVANTAGES,
+    LEXICON_CONTACTS,
+    LEXICON_OPPORTUNITIES,
+    LEXICON_FUNCTIONALITY,
+    LEXICON_INTERFACE
+)
 from sqlalchemy import select
 
 
@@ -17,7 +33,49 @@ async def get_validated_phone(phone) -> str:
     return '8' + validated
 
 
-async def add_data_to_db(message, user_data: dict[str, str], localized_time: datetime, validated_phone: str) -> None:
+async def add_default_answers_to_db():
+    async with async_session() as session:
+        advantages_data = await session.scalar(select(Advantages))
+        if advantages_data is None:  # Просто что бы при запуске не добавлял данные заново.
+            for advantage in LEXICON_ADVANTAGES:
+                session.add(
+                    Advantages(
+                        text=advantage['text'],
+                        image_name=advantage['image_name']
+                    )
+                )
+            for contact in LEXICON_CONTACTS:
+                session.add(
+                    Contacts(
+                        text=contact['text'],
+                        image_name=contact['image_name']
+                    )
+                )
+            for opportunity in LEXICON_OPPORTUNITIES:
+                session.add(
+                    Opportunities(
+                        text=opportunity['text'],
+                        image_name=opportunity['image_name']
+                    )
+                )
+            for functionality in LEXICON_FUNCTIONALITY:
+                session.add(
+                    Functionalities(
+                        text=functionality['text'],
+                        image_name=functionality['image_name']
+                    )
+                )
+            for interface in LEXICON_INTERFACE:
+                session.add(
+                    Interface(
+                        text=interface['text'],
+                        image_name=interface['image_name']
+                    )
+                )
+
+            await session.commit()
+
+async def add_user_data_to_db(message, user_data: dict[str, str], localized_time: datetime, validated_phone: str) -> None:
     async with async_session() as session:
         select_command = select(User).where(User.tg_id == message.from_user.id)
         some_user = await session.scalar(select_command)

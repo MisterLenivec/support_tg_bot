@@ -9,6 +9,7 @@ from config_data.config import Config, load_config
 from handlers import fsm_handlers, user_handlers
 from keyboards.main_menu import set_main_menu
 from database.models import config_database
+from services.service import add_default_answers_to_db
 
 
 # Initializing logger
@@ -30,6 +31,7 @@ WEBHOOK_SECRET = config.webhook.webhook_secret
 
 async def on_startup(bot: Bot) -> None:
     await config_database()
+    await add_default_answers_to_db()
 
     listener = await ngrok.connect(f'{WEB_SERVER_HOST}:{WEB_SERVER_PORT}', authtoken_from_env=True)
 

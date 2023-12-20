@@ -45,6 +45,46 @@ class Feedback(Base):
     user: Mapped["User"] = relationship('User', back_populates='feedbacks')
 
 
+class Advantages(Base):
+    __tablename__ = 'advantages'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    text: Mapped[str] = mapped_column()
+    image_name: Mapped[str] = mapped_column(String(50), nullable=True)
+
+
+class Contacts(Base):
+    __tablename__ = 'contacts'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    text: Mapped[str] = mapped_column()
+    image_name: Mapped[str] = mapped_column(String(50), nullable=True)
+
+
+class Opportunities(Base):
+    __tablename__ = 'opportunities'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    text: Mapped[str] = mapped_column()
+    image_name: Mapped[str] = mapped_column(String(50), nullable=True)
+
+
+class Functionalities(Base):
+    __tablename__ = 'functionalities'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    text: Mapped[str] = mapped_column()
+    image_name: Mapped[str] = mapped_column(String(50), nullable=True)
+
+
+class Interface(Base):
+    __tablename__ = 'interface'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    text: Mapped[str] = mapped_column()
+    image_name: Mapped[str] = mapped_column(String(50), nullable=True)
+
+
 async def config_database():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
