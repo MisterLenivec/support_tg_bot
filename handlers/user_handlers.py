@@ -1,24 +1,13 @@
-from asyncio import sleep
-
 from aiogram import F, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state
-from aiogram.types import CallbackQuery, FSInputFile, Message, ReplyKeyboardRemove
+from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
 from config_data.config import FeedbackDialog, FSMFillForm
-
-from keyboards.reply_keyboards import create_reply_kb
 from keyboards.inline_keyboards import create_inline_kb
-from lexicon.lexicon_data import (
-    LEXICON_ADVANTAGES,
-    LEXICON_ANSWERS,
-    LEXICON_CONTACTS,
-    LEXICON_FUNCTIONALITY,
-    LEXICON_INTERFACE,
-    LEXICON_OPPORTUNITIES,
-    REPLY_BUTTON_COMMANDS,
-    BASE_COMMANDS
-)
+from keyboards.reply_keyboards import create_reply_kb
+from lexicon.lexicon_data import BASE_COMMANDS, LEXICON_ANSWERS, REPLY_BUTTON_COMMANDS
+from services.response_service import make_callback_response, make_message_response
 
 router = Router()
 
@@ -103,9 +92,8 @@ async def process_info_command(message: Message):
 
 @router.message(Command(commands="contacts"))
 async def process_contacts_command(message: Message):
-    photo = FSInputFile(LEXICON_CONTACTS["photo"])
     keyboard = create_inline_kb("info", "advantages")
-    await message.answer_photo(photo, caption=LEXICON_CONTACTS["contacts"], reply_markup=keyboard)
+    await make_message_response(message, keyboard)
 
 
 @router.message(Command(commands=["home_assistant", "docs_install"]))
@@ -126,60 +114,29 @@ async def process_info_button(callback: CallbackQuery):
 
 @router.callback_query(F.data == "opportunities")
 async def process_opportunities_button(callback: CallbackQuery):
-    for photo, opportunity in zip(LEXICON_OPPORTUNITIES["photos"], LEXICON_OPPORTUNITIES["opportunities"]):
-        photo_file = FSInputFile(photo)
-        if LEXICON_OPPORTUNITIES["photos"][-1] == photo:  # Костыли-костылики
-            keyboard = create_inline_kb("functionality", "interface", "advantages")
-            await callback.message.answer_photo(photo_file, caption=opportunity, reply_markup=keyboard)
-        else:
-            await callback.message.answer_photo(photo_file, caption=opportunity)
-            await sleep(0.3)
-
-    await callback.answer()
+    keyboard = create_inline_kb("functionality", "interface", "advantages")
+    await make_callback_response(callback, keyboard, "opportunities")
 
 
 @router.callback_query(F.data == "functionality")
 async def process_functionality_button(callback: CallbackQuery):
-    await callback.message.answer(text=LEXICON_FUNCTIONALITY["functionality"][0])
-    for photo, functionality in zip(LEXICON_FUNCTIONALITY["photos"], LEXICON_FUNCTIONALITY["functionality"][1:]):
-        photo_file = FSInputFile(photo)
-        if LEXICON_FUNCTIONALITY["photos"][-1] == photo:  # Костыли-костылики
-            keyboard = create_inline_kb("opportunities", "interface", "advantages")
-            await callback.message.answer_photo(photo_file, caption=functionality, reply_markup=keyboard)
-        else:
-            await callback.message.answer_photo(photo_file, caption=functionality)
-            await sleep(0.3)
-
-    await callback.answer()
+    keyboard = create_inline_kb("opportunities", "interface", "advantages")
+    await make_callback_response(callback, keyboard, "functionality")
 
 
 @router.callback_query(F.data == "interface")
 async def process_interface_button(callback: CallbackQuery):
-    for photo, interface in zip(LEXICON_INTERFACE["photos"], LEXICON_INTERFACE["interface"]):
-        photo_file = FSInputFile(photo)
-        if LEXICON_INTERFACE["photos"][-1] == photo:  # Костыли-костылики
-            keyboard = create_inline_kb("opportunities", "functionality")
-            await callback.message.answer_photo(photo_file, caption=interface, reply_markup=keyboard)
-        else:
-            await callback.message.answer_photo(photo_file, caption=interface)
-            await sleep(0.3)
-
-    await callback.answer()
+    keyboard = create_inline_kb("opportunities", "functionality")
+    await make_callback_response(callback, keyboard, "interface")
 
 
 @router.callback_query(F.data == "contacts")
 async def process_contacts_button(callback: CallbackQuery):
-    photo_file = FSInputFile(LEXICON_CONTACTS["photo"])
     keyboard = create_inline_kb("info", "advantages")
-    await callback.message.answer_photo(photo_file, caption=LEXICON_CONTACTS["contacts"], reply_markup=keyboard)
-    await callback.answer()
+    await make_callback_response(callback, keyboard, "contacts")
 
 
 @router.callback_query(F.data == "advantages")
 async def process_advantages_button(callback: CallbackQuery):
-    photo_file = FSInputFile(LEXICON_ADVANTAGES["photo"])
-    await callback.message.answer_photo(photo_file, caption=LEXICON_ADVANTAGES["advantages"][0])
-    await sleep(0.3)
     keyboard = create_inline_kb("info", "contacts")
-    await callback.message.answer(text=LEXICON_ADVANTAGES["advantages"][1], reply_markup=keyboard)
-    await callback.answer()
+    await make_callback_response(callback, keyboard, "advantages")

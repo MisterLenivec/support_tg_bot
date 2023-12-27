@@ -5,7 +5,8 @@ from aiogram.types import Message, ReplyKeyboardRemove
 from config_data.config import FeedbackDialog, FSMFillForm
 from filters.filters import IsCorrectEmail, IsCorrectPhoneNumber
 from keyboards.reply_keyboards import create_reply_kb
-from services.service import get_structured_data, send_mail, add_user_data_to_db
+from services.service import get_structured_data, send_mail
+from services.db_service import add_user_data_to_db
 
 
 router = Router()

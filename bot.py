@@ -1,21 +1,23 @@
 import logging
-import ngrok
+from pathlib import Path
 
+import ngrok
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import Redis, RedisStorage
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiohttp import web
 from config_data.config import Config, load_config
+from database.models import config_database
 from handlers import fsm_handlers, user_handlers
 from keyboards.main_menu import set_main_menu
-from database.models import config_database
-from services.service import add_default_answers_to_db
-
+from services.db_service import add_default_answers_to_db
 
 # Initializing logger
 logger = logging.getLogger(__name__)
 
 config: Config = load_config()
+
+PICTURES_PATH = Path.cwd().joinpath("media", "pictures")
 
 # Webserver settings
 # bind localhost only to prevent any external access

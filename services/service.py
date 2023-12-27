@@ -1,29 +1,11 @@
-from re import sub
 from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from re import sub
 from smtplib import SMTP_SSL
 
 import pytz
 from config_data.config import Config, load_config
-from database.models import (
-    async_session,
-    Feedback,
-    User,
-    Advantages,
-    Contacts,
-    Opportunities,
-    Functionalities,
-    Interface
-)
-from lexicon.lexicon_answers import (
-    LEXICON_ADVANTAGES,
-    LEXICON_CONTACTS,
-    LEXICON_OPPORTUNITIES,
-    LEXICON_FUNCTIONALITY,
-    LEXICON_INTERFACE
-)
-from sqlalchemy import select
 
 
 async def get_validated_phone(phone) -> str:
@@ -31,81 +13,6 @@ async def get_validated_phone(phone) -> str:
     if len(validated) > 10:
         return '8' + validated[1:]
     return '8' + validated
-
-
-async def add_default_answers_to_db():
-    async with async_session() as session:
-        advantages_data = await session.scalar(select(Advantages))
-        if advantages_data is None:  # Просто что бы при запуске не добавлял данные заново.
-            for advantage in LEXICON_ADVANTAGES:
-                session.add(
-                    Advantages(
-                        text=advantage['text'],
-                        image_name=advantage['image_name']
-                    )
-                )
-            for contact in LEXICON_CONTACTS:
-                session.add(
-                    Contacts(
-                        text=contact['text'],
-                        image_name=contact['image_name']
-                    )
-                )
-            for opportunity in LEXICON_OPPORTUNITIES:
-                session.add(
-                    Opportunities(
-                        text=opportunity['text'],
-                        image_name=opportunity['image_name']
-                    )
-                )
-            for functionality in LEXICON_FUNCTIONALITY:
-                session.add(
-                    Functionalities(
-                        text=functionality['text'],
-                        image_name=functionality['image_name']
-                    )
-                )
-            for interface in LEXICON_INTERFACE:
-                session.add(
-                    Interface(
-                        text=interface['text'],
-                        image_name=interface['image_name']
-                    )
-                )
-
-            await session.commit()
-
-async def add_user_data_to_db(message, user_data: dict[str, str], localized_time: datetime, validated_phone: str) -> None:
-    async with async_session() as session:
-        select_command = select(User).where(User.tg_id == message.from_user.id)
-        some_user = await session.scalar(select_command)
-        if some_user is None:
-            session.add(User(
-            tg_id=message.from_user.id,
-            created_on=localized_time,
-            feedbacks=[Feedback(
-                is_bot=message.from_user.is_bot,
-                tg_nickname=message.from_user.first_name,
-                name=user_data['name'],
-                mail=user_data['email'],
-                phone=validated_phone,
-                created_on=localized_time,
-                appeal=user_data['text']
-            )]))
-        else:
-            session.add(Feedback(
-                user_id=some_user.id,
-                is_bot=message.from_user.is_bot,
-                tg_nickname=message.from_user.first_name,
-                name=user_data['name'],
-                mail=user_data['email'],
-                phone=validated_phone,
-                created_on=localized_time,
-                appeal=user_data['text']
-                ))
-
-        await session.commit()
-
 
 async def get_structured_data(user_data, message) -> tuple[str, str, datetime, str]:
     tz_moscow = pytz.timezone("Europe/Moscow")
