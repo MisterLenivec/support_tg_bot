@@ -3,13 +3,14 @@ from pathlib import Path
 
 import ngrok
 from aiogram import Bot, Dispatcher
-from aiogram.fsm.storage.redis import Redis, RedisStorage
+from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiohttp import web
 from config_data.config import Config, load_config
 from database.models import config_database
 from handlers import fsm_handlers, user_handlers
 from keyboards.main_menu import set_main_menu
+from misc import redis
 from services.db_service import add_default_answers_to_db
 
 # Initializing logger
@@ -48,7 +49,6 @@ async def on_startup(bot: Bot) -> None:
 def main():
     logger.info("Starting bot")
 
-    redis = Redis(host="localhost")
     storage = RedisStorage(redis=redis)
 
     bot = Bot(token=config.tg_bot.token, parse_mode="HTML")

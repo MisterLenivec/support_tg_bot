@@ -1,4 +1,5 @@
 from datetime import datetime
+from json import dumps, loads
 
 from database.models import (
     Advantages,
@@ -17,6 +18,7 @@ from lexicon.lexicon_answers import (
     LEXICON_INTERFACE,
     LEXICON_OPPORTUNITIES,
 )
+from misc import redis
 from sqlalchemy import select
 
 
@@ -30,10 +32,15 @@ async def get_answer_data(command) -> list:
         }
     command = command.replace('/', '').split()[0]
 
-    async with async_session() as session:
-        result = await session.scalars(select(db_commands[command]))
-        return list(result)
-
+    result = await redis.get(command)
+    if not result:
+        async with async_session() as session:
+            records = await session.scalars(select(db_commands[command]))
+            result = [{'text': record.text, 'image_name': record.image_name} for record in records]
+            await redis.set(command, dumps(result))
+            await redis.expire(command, 3600)
+            return result
+    return loads(result)
 
 async def add_default_answers_to_db():
     async with async_session() as session:
