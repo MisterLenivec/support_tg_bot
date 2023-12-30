@@ -10,6 +10,7 @@ from config_data.config import Config, load_config
 from database.models import config_database
 from handlers import fsm_handlers, user_handlers
 from keyboards.main_menu import set_main_menu
+from middlewares.throttling import ThrottlingMiddleware
 from misc import redis
 from services.db_service import add_default_answers_to_db
 
@@ -59,6 +60,8 @@ def main():
 
     dp.include_router(user_handlers.router)
     dp.include_router(fsm_handlers.router)
+
+    dp.message.middleware(ThrottlingMiddleware())
 
     # Create aiohttp.web.Application instance
     app = web.Application()
