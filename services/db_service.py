@@ -43,45 +43,27 @@ async def get_answer_data(command) -> list:
     return loads(result)
 
 async def add_default_answers_to_db():
-    async with async_session() as session:
-        advantages_data = await session.scalar(select(Advantages))
-        if advantages_data is None:  # Просто что бы при запуске не добавлял данные заново.
-            for advantage in LEXICON_ADVANTAGES:
-                session.add(
-                    Advantages(
-                        text=advantage['text'],
-                        image_name=advantage['image_name']
-                    )
-                )
-            for contact in LEXICON_CONTACTS:
-                session.add(
-                    Contacts(
-                        text=contact['text'],
-                        image_name=contact['image_name']
-                    )
-                )
-            for opportunity in LEXICON_OPPORTUNITIES:
-                session.add(
-                    Opportunities(
-                        text=opportunity['text'],
-                        image_name=opportunity['image_name']
-                    )
-                )
-            for functionality in LEXICON_FUNCTIONALITY:
-                session.add(
-                    Functionalities(
-                        text=functionality['text'],
-                        image_name=functionality['image_name']
-                    )
-                )
-            for interface in LEXICON_INTERFACE:
-                session.add(
-                    Interface(
-                        text=interface['text'],
-                        image_name=interface['image_name']
-                    )
-                )
+    models_and_deafult_data = [
+        {'model': Advantages, 'data': LEXICON_ADVANTAGES},
+        {'model': Contacts, 'data': LEXICON_CONTACTS},
+        {'model': Opportunities, 'data': LEXICON_OPPORTUNITIES},
+        {'model': Functionalities, 'data': LEXICON_FUNCTIONALITY},
+        {'model': Interface, 'data': LEXICON_INTERFACE},
+    ]
 
+    async with async_session() as session:
+        for table in models_and_deafult_data:
+            model_data = await session.scalar(select(table['model']))
+            if model_data is None:
+                for data in table['data']:
+                    session.add(
+                        table['model'](
+                            text=data['text'],
+                            image_name=data['image_name']
+                        )
+                    )
+
+        if len(session.new):
             await session.commit()
 
 async def add_user_data_to_db(message, user_data: dict[str, str], localized_time: datetime, validated_phone: str) -> None:
