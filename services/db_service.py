@@ -42,7 +42,7 @@ async def get_answer_data(command) -> list:
             return result
     return loads(result)
 
-async def add_default_answers_to_db():
+async def add_default_answers_to_db() -> None:
     models_and_deafult_data = [
         {'model': Advantages, 'data': LEXICON_ADVANTAGES},
         {'model': Contacts, 'data': LEXICON_CONTACTS},

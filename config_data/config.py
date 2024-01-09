@@ -47,7 +47,12 @@ class DBSettings:
     user: str
     password: str
     host: str
+    port: str
 
+
+@dataclass
+class RedisSettings:
+    host: str
 
 @dataclass
 class Config:
@@ -56,6 +61,7 @@ class Config:
     omnidesk: Omnidesk
     webhook: WebhookSettings
     database: DBSettings
+    redis: RedisSettings
 
 
 # Создаем функцию, которая будет читать файл .env и возвращать
@@ -83,9 +89,13 @@ def load_config(path: str | None = None) -> Config:
             webhook_secret=env('WEBHOOK_SECRET'),
         ),
         database=DBSettings(
-            name=env('DB_NAME'),
-            user=env('DB_USER'),
-            password=env('DB_PASSWORD'),
-            host=env('DB_HOST'),
+            name=env('POSTGRES_DB'),
+            user=env('POSTGRES_USER'),
+            password=env('POSTGRES_PASSWORD'),
+            host=env('POSTGRES_HOST') or '127.0.0.1',
+            port=env('POSTGRES_PORT'),
+        ),
+        redis=RedisSettings(
+            host=env('REDIS_HOST') or '127.0.0.1',
         )
     )
