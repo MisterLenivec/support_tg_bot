@@ -1,5 +1,6 @@
 from datetime import datetime
 from json import dumps, loads
+import logging
 
 from database.models import (
     Advantages,
@@ -36,10 +37,13 @@ async def get_answer_data(command) -> list:
     if not result:
         async with async_session() as session:
             records = await session.scalars(select(db_commands[command]))
+            logging.warning(f'Get "{command}" command from DB.' if records is not None else f'"{command}" command not in DB.')
             result = [{'text': record.text, 'image_name': record.image_name} for record in records]
             await redis.set(command, dumps(result))
             await redis.expire(command, 3600)
+            logging.info(f'Set answer to "{command}" command to Redis.\nReturn answer to "{command}" command from DB!')
             return result
+    logging.info(f'Return answer to "{command}" command from Redis!')
     return loads(result)
 
 async def add_default_answers_to_db() -> None:
@@ -64,6 +68,7 @@ async def add_default_answers_to_db() -> None:
                     )
 
         if len(session.new):
+            logging.info("Commit default data to DB.")
             await session.commit()
 
 async def add_user_data_to_db(message, user_data: dict[str, str], localized_time: datetime, validated_phone: str) -> None:
@@ -83,6 +88,7 @@ async def add_user_data_to_db(message, user_data: dict[str, str], localized_time
                 created_on=localized_time,
                 appeal=user_data['text']
             )]))
+            logging.info(f'Add new user and feedback with tg_id - "{message.from_user.id}" to DB.')
         else:
             session.add(Feedback(
                 user_id=some_user.id,
@@ -94,5 +100,6 @@ async def add_user_data_to_db(message, user_data: dict[str, str], localized_time
                 created_on=localized_time,
                 appeal=user_data['text']
                 ))
+            logging.info(f'Add new feedback from user with tg_id - "{message.from_user.id}" to DB.')
 
         await session.commit()

@@ -88,14 +88,13 @@ async def warning_not_phone(message: Message):
 # и очищать машину состояний
 @router.message(StateFilter(FSMFillForm.fill_text), F.text)
 async def process_text_sent(message: Message, state: FSMContext):
-    # Cохраняем возраст в хранилище по ключу "phone"
     await state.update_data(text=message.text)
     user_data: dict[str:str] = await state.get_data()
 
     tg_data, answer_data, localized_time, validated_phone = await get_structured_data(user_data, message)
 
     await add_user_data_to_db(message, user_data, localized_time, validated_phone)
-    await send_mail(tg_data + "\n\n" + answer_data)
+    await send_mail(tg_data + "\n\n" + answer_data, message.from_user.id)
 
     await state.clear()
     # тут отправка данных

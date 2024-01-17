@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -33,11 +34,12 @@ async def get_structured_data(user_data, message) -> tuple[str, str, datetime, s
         f"Телефон: {validated_phone}\n"
         f"Текст: {user_data['text']}"
     )
-
+    logging.info(f'Return structured feedback data from user with tg_id - {message.from_user.id}.')
     return tg_data, answer_data, localized_time, validated_phone
 
 
-async def send_mail(mail_message) -> None:
+async def send_mail(mail_message, user_id) -> None:
+    logging.info(f'Prepare send feedback to email from user with tg_id - {user_id}.')
     config: Config = load_config()
 
     from_email = config.mail.mail_login
@@ -57,3 +59,4 @@ async def send_mail(mail_message) -> None:
     smtp_server.login(from_email, config.mail.app_pass)
     smtp_server.sendmail(from_email, to_emails, msg.as_string())
     smtp_server.quit()
+    logging.info(f'Feedback to email from user with tg_id - {user_id} was sended.')

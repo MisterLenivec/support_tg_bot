@@ -8,6 +8,7 @@ __pycache__/
 
 # local files
 lexicon_answers.py
+logs/bot_logs.log*
 
 # Distribution / packaging
 .Python

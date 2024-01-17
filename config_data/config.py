@@ -54,6 +54,11 @@ class DBSettings:
 class RedisSettings:
     host: str
 
+
+@dataclass
+class DebugSettings:
+    debug_value: bool
+
 @dataclass
 class Config:
     tg_bot: TgBot
@@ -62,6 +67,7 @@ class Config:
     webhook: WebhookSettings
     database: DBSettings
     redis: RedisSettings
+    debug: DebugSettings
 
 
 # Создаем функцию, которая будет читать файл .env и возвращать
@@ -92,10 +98,13 @@ def load_config(path: str | None = None) -> Config:
             name=env('POSTGRES_DB'),
             user=env('POSTGRES_USER'),
             password=env('POSTGRES_PASSWORD'),
-            host=env('POSTGRES_HOST') or '127.0.0.1',
+            host=env('POSTGRES_HOST', '127.0.0.1'),
             port=env('POSTGRES_PORT'),
         ),
         redis=RedisSettings(
-            host=env('REDIS_HOST') or '127.0.0.1',
+            host=env('REDIS_HOST', '127.0.0.1'),
+        ),
+        debug=DebugSettings(
+            debug_value=env('DEBUG', '') == 'True'
         )
     )
