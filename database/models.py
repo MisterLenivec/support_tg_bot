@@ -10,7 +10,7 @@ db: DBSettings = load_config().database
 
 DATABASE_URL = f"postgresql+asyncpg://{db.user}:{db.password}@{db.host}:{db.port}/{db.name}"
 
-engine: AsyncEngine = create_async_engine(DATABASE_URL, echo=True)
+engine: AsyncEngine = create_async_engine(DATABASE_URL, echo=load_config().debug.debug_value)
 
 async_session = async_sessionmaker(engine)
 

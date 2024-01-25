@@ -12,16 +12,12 @@ from database.models import (
     User,
     async_session,
 )
-from lexicon.lexicon_answers import (
-    LEXICON_ADVANTAGES,
-    LEXICON_CONTACTS,
-    LEXICON_FUNCTIONALITY,
-    LEXICON_INTERFACE,
-    LEXICON_OPPORTUNITIES,
-)
+
 from misc import redis
 from sqlalchemy import select
 
+
+logger = logging.getLogger(__name__)
 
 async def get_answer_data(command) -> list:
     db_commands = {
@@ -34,19 +30,40 @@ async def get_answer_data(command) -> list:
     command = command.replace('/', '').split()[0]
 
     result = await redis.get(command)
+    if result is not None:
+        result = loads(result)
+
     if not result:
         async with async_session() as session:
             records = await session.scalars(select(db_commands[command]))
-            logging.warning(f'Get "{command}" command from DB.' if records is not None else f'"{command}" command not in DB.')
             result = [{'text': record.text, 'image_name': record.image_name} for record in records]
+
+            if result:
+                logger.info(f'Get "{command}" command from DB.')
+            else:
+                logger.error(f'"{command}" data not in DB!!!')
+                return [{'text': 'The data is temporarily unavailable.', 'image_name': None}]
+
             await redis.set(command, dumps(result))
             await redis.expire(command, 3600)
-            logging.info(f'Set answer to "{command}" command to Redis.\nReturn answer to "{command}" command from DB!')
+            logger.info(f'Set answer to "{command}" command to Redis.\nReturn answer to "{command}" command from DB!')
             return result
-    logging.info(f'Return answer to "{command}" command from Redis!')
-    return loads(result)
+    logger.info(f'Return answer to "{command}" command from Redis!')
+    return result
 
 async def add_default_answers_to_db() -> None:
+    try:
+        from lexicon.lexicon_answers import (
+            LEXICON_ADVANTAGES,
+            LEXICON_CONTACTS,
+            LEXICON_FUNCTIONALITY,
+            LEXICON_INTERFACE,
+            LEXICON_OPPORTUNITIES,
+        )
+    except ModuleNotFoundError:
+        logger.error('There is no default data to add to the database!!!')
+        return
+
     models_and_deafult_data = [
         {'model': Advantages, 'data': LEXICON_ADVANTAGES},
         {'model': Contacts, 'data': LEXICON_CONTACTS},
@@ -68,7 +85,7 @@ async def add_default_answers_to_db() -> None:
                     )
 
         if len(session.new):
-            logging.info("Commit default data to DB.")
+            logger.info("Commit default data to DB.")
             await session.commit()
 
 async def add_user_data_to_db(message, user_data: dict[str, str], localized_time: datetime, validated_phone: str) -> None:
@@ -88,7 +105,7 @@ async def add_user_data_to_db(message, user_data: dict[str, str], localized_time
                 created_on=localized_time,
                 appeal=user_data['text']
             )]))
-            logging.info(f'Add new user and feedback with tg_id - "{message.from_user.id}" to DB.')
+            logger.info(f'Add new user and feedback with tg_id - "{message.from_user.id}" to DB.')
         else:
             session.add(Feedback(
                 user_id=some_user.id,
@@ -100,6 +117,6 @@ async def add_user_data_to_db(message, user_data: dict[str, str], localized_time
                 created_on=localized_time,
                 appeal=user_data['text']
                 ))
-            logging.info(f'Add new feedback from user with tg_id - "{message.from_user.id}" to DB.')
+            logger.info(f'Add new feedback from user with tg_id - "{message.from_user.id}" to DB.')
 
         await session.commit()

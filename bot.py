@@ -34,46 +34,46 @@ WEBHOOK_SECRET = config.webhook.webhook_secret
 
 
 async def on_startup(bot: Bot) -> None:
-    logging.info('Database preparation.')
+    logger.info('Database preparation.')
     await config_database()
-    logging.info('The database has been configured.')
+    logger.info('The database has been configured.')
 
-    logging.info('Checking default data in the DB.')
+    logger.info('Checking default data in the DB.')
     await add_default_answers_to_db()
 
-    logging.info('Connect to Ngrok.')
+    logger.info('Connect to Ngrok.')
     listener = await ngrok.connect(f'{WEB_SERVER_HOST}:{WEB_SERVER_PORT}', authtoken_from_env=True)
-    logging.info('Ngrok was connected.')
+    logger.info('Ngrok was connected.')
 
     # # Drop updates
     # await bot.delete_webhook(drop_pending_updates=True)
 
-    logging.info('Installing a webhook.')
+    logger.info('Installing a webhook.')
     await bot.set_webhook(f"{listener.url()}{WEBHOOK_PATH}", secret_token=WEBHOOK_SECRET)
-    logging.info('Webhook has been installed.')
+    logger.info('Webhook has been installed.')
 
     # Setting up bot main menu
     await set_main_menu(bot)
 
 
 def main():
-    logging.info('Starting bot config.')
+    logger.info('Starting bot config.')
     storage = RedisStorage(redis=redis)
-    logging.info('Redis storage was created.')
+    logger.info('Redis storage was created.')
 
     bot = Bot(token=config.tg_bot.token, parse_mode="HTML")
     dp = Dispatcher(storage=storage)
-    logging.info('Bot and Dispatcher were created.')
+    logger.info('Bot and Dispatcher were created.')
 
     # Register startup hook to initialize webhook
     dp.startup.register(on_startup)
 
     dp.include_router(user_handlers.router)
     dp.include_router(fsm_handlers.router)
-    logging.info('Dispatcher was included handlers.')
+    logger.info('Dispatcher was included handlers.')
 
     dp.message.middleware(ThrottlingMiddleware())
-    logging.info('Dispatcher was included middlewares.')
+    logger.info('Dispatcher was included middlewares.')
 
     # Create aiohttp.web.Application instance
     app = web.Application()
@@ -86,19 +86,19 @@ def main():
         bot=bot,
         secret_token=WEBHOOK_SECRET,
     )
-    logging.info('Webhook requests handler was created.')
+    logger.info('Webhook requests handler was created.')
 
     # Register webhook handler on application
     webhook_requests_handler.register(app, path=WEBHOOK_PATH)
-    logging.info('Webhook requests handler was registered on app.')
+    logger.info('Webhook requests handler was registered on app.')
 
     # Mount dispatcher startup and shutdown hooks to aiohttp application
     setup_application(app, dp, bot=bot)
-    logging.info('Mount dispatcher startup and shutdown hooks to aiohttp application.')
+    logger.info('Mount dispatcher startup and shutdown hooks to aiohttp application.')
 
     # And finally start webserver
     web.run_app(app, host=WEB_SERVER_HOST, port=WEB_SERVER_PORT)
-    logging.info('Webserver is running.')
+    logger.info('Webserver is running.')
 
 
 if __name__ == "__main__":
