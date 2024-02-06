@@ -3,7 +3,7 @@ from pathlib import Path
 
 from aiogram.types import CallbackQuery, FSInputFile, InlineKeyboardMarkup, Message
 from bot import PICTURES_PATH
-from services.db_service import get_answer_data
+from services.db_service import get_answer_data, get_command_answer
 
 
 async def make_callback_response(callback: CallbackQuery, keyboard: InlineKeyboardMarkup, command_name: str) -> None:
@@ -40,3 +40,13 @@ async def make_message_response(message: Message, keyboard: InlineKeyboardMarkup
             else:
                 await message.answer(text=record['text'])
             await sleep(0.3)
+
+async def make_menu_message_response(message: Message, keyboard: InlineKeyboardMarkup) -> None:
+    record = await get_command_answer(message.text)
+    await message.answer(text=record, reply_markup=keyboard)
+
+
+async def make_menu_callback_response(callback: CallbackQuery, keyboard: InlineKeyboardMarkup, command_name: str) -> None:
+    record = await get_command_answer(command_name)
+    await callback.message.answer(text=record, reply_markup=keyboard)
+    await callback.answer()

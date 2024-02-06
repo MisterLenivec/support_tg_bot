@@ -1,18 +1,17 @@
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
-from lexicon.lexicon_data import REPLY_BUTTON_COMMANDS
+from services.db_service import get_buttons_data
+from database.models import ReplyCancelButton
 
 
-def create_reply_kb(*args: str) -> ReplyKeyboardMarkup:
+async def create_reply_kb(*args: tuple[str] | str) -> ReplyKeyboardMarkup:
     kb_builder = ReplyKeyboardBuilder()
     buttons: list[KeyboardButton] = []
 
-    for button in args:
-        buttons.append(
-            KeyboardButton(
-                text=REPLY_BUTTON_COMMANDS[button] if button in REPLY_BUTTON_COMMANDS else button,
-            )
-        )
+    requested_buttons = list(args)
+    buttons_dict = await get_buttons_data(requested_buttons, ReplyCancelButton)
+    for button in buttons_dict:
+        buttons.append(KeyboardButton(text=buttons_dict[button]))
 
     kb_builder.row(*buttons, width=1)
 

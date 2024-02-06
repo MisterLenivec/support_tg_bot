@@ -1,20 +1,19 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from lexicon.lexicon_data import INLINE_BUTTON_COMMANDS
+from database.models import InlineButton
+from services.db_service import get_buttons_data
 
 
-def create_inline_kb(*args: str, **kwargs: str) -> InlineKeyboardMarkup:
+async def create_inline_kb(*args: tuple[str], **kwargs: dict[str, str]) -> InlineKeyboardMarkup:
     kb_builder = InlineKeyboardBuilder()
     buttons: list[InlineKeyboardButton] = []
 
     if args:
-        for button in args:
-            buttons.append(
-                InlineKeyboardButton(
-                    text=INLINE_BUTTON_COMMANDS[button] if button in INLINE_BUTTON_COMMANDS else button,
-                    callback_data=button,
-                )
-            )
+        requested_buttons = list(args)
+        buttons_dict = await get_buttons_data(requested_buttons, InlineButton)
+        for button, text in buttons_dict.items():
+            buttons.append(InlineKeyboardButton(text=text, callback_data=button,))
+
     if kwargs:
         for button, text in kwargs.items():
             buttons.append(InlineKeyboardButton(text=text, callback_data=button))

@@ -45,7 +45,7 @@ class Feedback(Base):
     user: Mapped["User"] = relationship('User', back_populates='feedbacks')
 
 
-class Advantages(Base):
+class Advantage(Base):
     __tablename__ = 'advantages'
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -53,7 +53,7 @@ class Advantages(Base):
     image_name: Mapped[str] = mapped_column(String(50), nullable=True)
 
 
-class Contacts(Base):
+class Contact(Base):
     __tablename__ = 'contacts'
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -61,7 +61,7 @@ class Contacts(Base):
     image_name: Mapped[str] = mapped_column(String(50), nullable=True)
 
 
-class Opportunities(Base):
+class Opportunity(Base):
     __tablename__ = 'opportunities'
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -69,7 +69,7 @@ class Opportunities(Base):
     image_name: Mapped[str] = mapped_column(String(50), nullable=True)
 
 
-class Functionalities(Base):
+class Functionality(Base):
     __tablename__ = 'functionalities'
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -83,6 +83,37 @@ class Interface(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     text: Mapped[str] = mapped_column()
     image_name: Mapped[str] = mapped_column(String(50), nullable=True)
+
+
+class ButtonAnswer(Base):
+    __tablename__ = 'button_answers'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    command: Mapped[str] = mapped_column(String(30))
+    answer: Mapped[str] = mapped_column()
+
+
+class MenuButton(Base):
+    __tablename__ = 'menu_buttons'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    command: Mapped[str] = mapped_column(String(30))
+    answer: Mapped[str] = mapped_column()
+
+
+class InlineButton(Base):
+    __tablename__ = 'inline_buttons'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    command: Mapped[str] = mapped_column(String(30))
+    answer: Mapped[str] = mapped_column()
+
+class ReplyCancelButton(Base):
+    __tablename__ = 'cancel_buttons'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    command: Mapped[str] = mapped_column(String(30))
+    answer: Mapped[str] = mapped_column()
 
 
 async def config_database():
